@@ -21,6 +21,7 @@ export default {
     upload () {
       const local_path = remote.dialog.showOpenDialogSync({})
       if (local_path) {
+        console.log(local_path)
         const base = path.parse(local_path[0]).base
         const oss_path = path.join(this.file_dir.join('/'), base)
         this.$bus.$emit('oss_upload', this.client, oss_path, local_path[0], (err) => {

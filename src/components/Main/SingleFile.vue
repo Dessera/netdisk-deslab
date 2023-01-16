@@ -26,6 +26,15 @@
       获取外链
     </el-button>
     <el-button
+      v-if="is_image"
+      size="mini"
+      type="primary"
+      icon="el-icon-zoom-in"
+      round
+      @click.stop="get_preview">
+      预览
+    </el-button>
+    <el-button
       v-if="!download_flag"
       size="mini"
       type="danger"
@@ -123,6 +132,14 @@ export default {
           }
         })
       })
+    },
+    get_preview () {
+      const origin = path.join(this.file_attr.dir, this.file_attr.base)
+      this.$bus.$emit('oss_image', this.client, origin, (url) => {
+        this.$alert(`<img src="${url}">`, this.file_attr.base, {
+          dangerouslyUseHTMLString: true
+        })
+      })
     }
   },
   data () {
@@ -163,6 +180,11 @@ export default {
         default:
           return 'el-icon-document-delete'
       }
+    },
+    is_image () {
+      return this.file_attr.ext === '.jpg' || this.file_attr.ext === '.jpeg' ||
+        this.file_attr.ext === '.gif' || this.file_attr.ext === '.png' ||
+        this.file_attr.ext === '.webp'
     }
   }
 }

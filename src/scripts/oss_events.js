@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import OSS from 'ali-oss'
 import fs from 'fs'
+// import path from 'path'
 import axios from 'axios'
 
 // const OSS = require('ali-oss')
@@ -30,6 +31,14 @@ Vue.prototype.$bus.$on('oss_link', async (user_data, origin, callback) => {
   const url = createClient(user_data).signatureUrl(origin, { response })
   callback(url)
 })
+Vue.prototype.$bus.$on('oss_image', async (user_data, origin, callback) => {
+  const url = createClient(user_data).signatureUrl(origin, {
+    expires: 600,
+    // eslint-disable-next-line quote-props
+    'process': 'image/resize,w_300'
+  })
+  callback(url)
+})
 
 Vue.prototype.$bus.$on('oss_download', async (user_data, original, target, callback) => {
   try {
@@ -53,9 +62,8 @@ Vue.prototype.$bus.$on('oss_download', async (user_data, original, target, callb
 
 Vue.prototype.$bus.$on('oss_upload', async function (user_data, oss_path, local_path, callback) {
   try {
-    const client = createClient(user_data)
-    const data = Buffer.from(fs.readFileSync(local_path, 'binary'))
-    client.put(oss_path, data).then(() => {
+    const stream = fs.createReadStream(local_path)
+    createClient(user_data).putStream(oss_path, stream).then(() => {
       this.$store.dispatch('files/update_list', user_data).then(() => callback(null)).catch(err => callback(err))
     }).catch(err => callback(err))
   } catch (err) {
