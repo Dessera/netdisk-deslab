@@ -24,6 +24,7 @@ async function handleDel (name, client) {
   }
 }
 
+// obsoleted
 Vue.prototype.$bus.$on('oss_link', async (user_data, origin, callback) => {
   const response = {
     'content-disposition': `attachment; filename=${encodeURIComponent(origin)}`
@@ -31,6 +32,7 @@ Vue.prototype.$bus.$on('oss_link', async (user_data, origin, callback) => {
   const url = createClient(user_data).signatureUrl(origin, { response })
   callback(url)
 })
+// obsoleted
 Vue.prototype.$bus.$on('oss_image', async (user_data, origin, callback) => {
   const url = createClient(user_data).signatureUrl(origin, {
     expires: 600,

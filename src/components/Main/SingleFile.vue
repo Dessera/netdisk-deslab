@@ -138,9 +138,15 @@ export default {
       }
     },
     async get_link () {
-      const origin = path.join(this.file_attr.dir, this.file_attr.base)
-      this.$bus.$emit('oss_link', this.client, origin, (url) => {
-        this.$alert(url, '已生成链接', {
+      try {
+        // 获取url
+        const origin = path.join(this.file_attr.dir, this.file_attr.base)
+        const response = {
+          'content-disposition': `attachment; filename=${encodeURIComponent(origin)}`
+        }
+        const url = this.oss_client.signatureUrl(origin, { response })
+        // 显示并复制
+        await this.$alert(url, '已生成链接', {
           confirmButtonText: '复制',
           callback: () => {
             remote.clipboard.writeText(url)
@@ -150,14 +156,24 @@ export default {
             })
           }
         })
-      })
+      } catch (e) {
+        // 错误处理
+        this.$message({
+          type: 'error',
+          message: `获取链接失败:${e}`
+        })
+      }
     },
     get_preview () {
+      // 获取链接
       const origin = path.join(this.file_attr.dir, this.file_attr.base)
-      this.$bus.$emit('oss_image', this.client, origin, (url) => {
-        this.$alert(`<img src="${url}">`, this.file_attr.base, {
-          dangerouslyUseHTMLString: true
-        })
+      const url = this.oss_client.signatureUrl(origin, {
+        expires: 600,
+        process: 'image/resize,w_300'
+      })
+      // 显示
+      this.$alert(`<img src="${url}" alt="${url}">`, this.file_attr.base, {
+        dangerouslyUseHTMLString: true
       })
     }
   },
