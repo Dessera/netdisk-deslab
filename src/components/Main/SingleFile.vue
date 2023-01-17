@@ -97,6 +97,7 @@ export default {
         })
       }
     },
+    // 下载事件处理
     async download () {
       try {
         // 准备路径等数据
@@ -137,6 +138,7 @@ export default {
         })
       }
     },
+    // 获取外链处理
     async get_link () {
       try {
         // 获取url
@@ -164,6 +166,7 @@ export default {
         })
       }
     },
+    // 预览处理
     get_preview () {
       // 获取链接
       const origin = path.join(this.file_attr.dir, this.file_attr.base)
@@ -184,11 +187,14 @@ export default {
     }
   },
   computed: {
+    // 从options中读取客户端信息
     ...mapState('options', ['client']),
     ...mapGetters('options', ['oss_client']),
+    // 标记文件是否可下载
     installable () {
       return this.file_attr.ext !== '/'
     },
+    // 去除路径的 '/'
     extname () {
       if (this.file_attr.ext === '/') {
         return ''
@@ -196,6 +202,7 @@ export default {
         return this.file_attr.ext
       }
     },
+    // 文件分类，获取图标，目前只能通过枚举的方法
     icon () {
       switch (this.file_attr.ext) {
         case '/':
@@ -217,6 +224,7 @@ export default {
           return 'el-icon-document-delete'
       }
     },
+    // 标记文件是否为图片
     is_image () {
       return this.file_attr.ext === '.jpg' || this.file_attr.ext === '.jpeg' ||
         this.file_attr.ext === '.gif' || this.file_attr.ext === '.png' ||
