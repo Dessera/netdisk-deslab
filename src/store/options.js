@@ -32,8 +32,7 @@ export default {
     }
   },
   state: {
-    client: null,
-    login_state: false
+    client: null
   },
   getters: {}
 }

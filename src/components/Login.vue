@@ -32,7 +32,7 @@ export default {
   },
   methods: {
     async login_generator () {
-      await this.$store.dispatch('user_data/login', this.user_data).then((data) => {
+      await this.$store.dispatch('options/login', this.user_data).then((data) => {
         this.$notify({
           title: '登录成功',
           message: '即将跳转至主页面',

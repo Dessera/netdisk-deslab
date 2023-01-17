@@ -14,7 +14,7 @@ export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: 'FootBar',
   computed: {
-    ...mapState('user_data', ['client']),
+    ...mapState('options', ['client']),
     ...mapState('files', ['file_dir'])
   },
   methods: {

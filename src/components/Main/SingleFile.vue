@@ -149,7 +149,7 @@ export default {
     }
   },
   computed: {
-    ...mapState('user_data', ['client']),
+    ...mapState('options', ['client']),
     installable () {
       return this.file_attr.ext !== '/'
     },
