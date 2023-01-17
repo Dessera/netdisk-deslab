@@ -40,7 +40,7 @@
       type="danger"
       icon="el-icon-close"
       round
-      @click.stop="deletef">
+      @click.stop="delete_file">
       删除
     </el-button>
   </div>
@@ -48,8 +48,10 @@
 
 <script>
 import { remote } from 'electron'
-import { mapState } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import path from 'path-browserify'
+import axios from 'axios'
+import fs from 'fs'
 
 export default {
   name: 'SingleFile',
@@ -58,65 +60,82 @@ export default {
     async deepen () {
       if (this.file_attr.ext === '/') this.$store.commit('files/UPDATE_PTR', this.file_attr.name)
     },
-    async deletef () {
-      const notify = (err) => {
-        if (err) {
-          this.$notify({
-            type: 'error',
-            title: '删除失败',
-            message: err
-          })
-        } else {
-          this.$notify({
-            type: 'success',
-            title: '删除成功'
-          })
-        }
-      }
-      const origin = path.join(this.file_attr.dir, this.file_attr.base)
-      this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
+    // 删除事件处理
+    async delete_file () {
+      try {
+        // 删除确认
+        await this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        // 获取路径
+        const origin = path.join(this.file_attr.dir, this.file_attr.base)
+        let del_list = []
         if (this.file_attr.ext === '/') {
-          this.$bus.$emit('oss_delete_dir', this.client, origin, notify)
+          del_list = (await this.oss_client.list({
+            prefix: `${origin}/`
+          })).objects.map((item) => {
+            return item.name
+          })
         } else {
-          this.$bus.$emit('oss_delete_file', this.client, origin, notify)
+          del_list.push(origin)
         }
-      }).catch(() => {
-      })
+        // 向OSS请求删除
+        await Promise.all(del_list.map((object) => this.oss_client.delete(object)))
+        // 更新列表
+        await this.$store.dispatch('files/update_list', this.client)
+        this.$message({
+          type: 'success',
+          message: '删除成功'
+        })
+      } catch (e) {
+        // 错误处理
+        this.$message({
+          type: 'error',
+          message: `删除失败:${e}`
+        })
+      }
     },
     async download () {
-      // 准备路径等数据
-      const origin = path.join(this.file_attr.dir, this.file_attr.base)
-      const target = remote.dialog.showSaveDialogSync({
-        defaultPath: this.file_attr.base
-      })
-      if (!target) return false
-      // 触发下载事件,并接受下载进度
-      this.download_flag = true
-      this.$bus.$emit('oss_download', this.client, origin, target, (percentage) => {
-        // 如果返回是数字,则正常处理,如果返回是错误,进行错误处理
-        this.download_percentage = percentage
-        if (percentage === 100) {
-          this.$notify({
-            title: '下载成功',
-            type: 'success'
+      try {
+        // 准备路径等数据
+        const origin = path.join(this.file_attr.dir, this.file_attr.base)
+        const target = remote.dialog.showSaveDialogSync({
+          defaultPath: this.file_attr.base
+        })
+        if (target) {
+          // 触发下载事件,并接受下载进度
+          this.download_flag = true
+          // 获取url
+          const response = {
+            'content-disposition': `attachment; filename=${encodeURIComponent(origin)}`
+          }
+          const url = this.oss_client.signatureUrl(origin, { response })
+          // 获取文件内容
+          const result = await axios.get(url, {
+            responseType: 'arraybuffer',
+            onDownloadProgress: (progressEvent) => {
+              this.download_percentage = (progressEvent.loaded / progressEvent.total * 100 | 0)
+            }
+          })
+          fs.writeFileSync(target, Buffer.from(result.data), 'binary')
+          this.$message({
+            type: 'success',
+            message: '下载成功'
           })
           setTimeout(() => {
             this.download_flag = false
             this.download_percentage = 0
-          }, 500)
-        } else if (typeof percentage !== 'number') {
-          this.download_flag = false
-          this.download_percentage = 0
-          this.$notify.error({
-            title: '下载失败',
-            message: percentage
-          })
+          }, 1000)
         }
-      })
+      } catch (e) {
+        // 错误处理
+        this.$message({
+          type: 'error',
+          message: `下载失败:${e}`
+        })
+      }
     },
     async get_link () {
       const origin = path.join(this.file_attr.dir, this.file_attr.base)
@@ -150,6 +169,7 @@ export default {
   },
   computed: {
     ...mapState('options', ['client']),
+    ...mapGetters('options', ['oss_client']),
     installable () {
       return this.file_attr.ext !== '/'
     },

@@ -34,5 +34,14 @@ export default {
   state: {
     client: null
   },
-  getters: {}
+  getters: {
+    oss_client (state) {
+      return new OSS({
+        region: 'oss-cn-hangzhou',
+        accessKeyId: state.client.name,
+        accessKeySecret: state.client.password,
+        bucket: 'deslab-testbucket'
+      })
+    }
+  }
 }

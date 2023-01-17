@@ -40,6 +40,7 @@ Vue.prototype.$bus.$on('oss_image', async (user_data, origin, callback) => {
   callback(url)
 })
 
+// obsoleted
 Vue.prototype.$bus.$on('oss_download', async (user_data, original, target, callback) => {
   try {
     const response = {
@@ -71,6 +72,7 @@ Vue.prototype.$bus.$on('oss_upload', async function (user_data, oss_path, local_
   }
 })
 
+// obsoleted
 Vue.prototype.$bus.$on('oss_delete_file', async function (user_data, oss_path, callback) {
   const client = createClient(user_data)
   client.delete(oss_path).then(() => {
@@ -78,6 +80,7 @@ Vue.prototype.$bus.$on('oss_delete_file', async function (user_data, oss_path, c
   }).catch(err => callback(err))
 })
 
+// obsoleted
 Vue.prototype.$bus.$on('oss_delete_dir', async function (user_data, oss_path, callback) {
   try {
     const client = createClient(user_data)
