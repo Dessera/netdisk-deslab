@@ -17,5 +17,3 @@ new Vue({
     Vue.prototype.$bus = this
   }
 }).$mount('#app')
-
-require('./scripts/oss_events')
